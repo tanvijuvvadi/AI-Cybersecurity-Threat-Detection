@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-Powered Cybersecurity Threat Detection</title>
+<meta name="description" content="ML-based network intrusion and anomaly detection. Simulated DoS, brute-force and port-scan attacks detected with Random Forest and Isolation Forest, with SOC-style alerts.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+<style>
+:root{
+  --bg:#0b1220; --bg2:#0f1a2e; --card:#131f36; --line:#22314f; --text:#e6edf7; --muted:#93a4c0;
+  --accent:#38bdf8; --green:#34d399; --red:#f43f5e; --amber:#fbbf24; --purple:#a78bfa;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+section{padding:72px 0}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);margin-bottom:8px}
+.sub{color:var(--muted);max-width:680px;margin-bottom:32px}
+.tag{display:inline-block;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-weight:700;display:flex;gap:8px;align-items:center;color:var(--text)}
+nav ul{display:flex;gap:22px;list-style:none;font-size:.9rem}
+nav ul a{color:var(--muted)} nav ul a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:600;border:1px solid var(--line);color:var(--text);background:var(--card);cursor:pointer;font-size:.95rem}
+.btn.primary{background:var(--accent);color:#04121f;border-color:var(--accent)}
+.btn:hover{transform:translateY(-1px)}
+@media(max-width:760px){nav ul{display:none}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:110px 0 90px;border-bottom:1px solid var(--line)}
+#net{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
+.hero .wrap{position:relative}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);line-height:1.1;max-width:820px}
+.hero h1 span{background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);font-size:1.15rem;max-width:640px;margin:20px 0 30px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.badge{font-size:.8rem;padding:4px 12px;border:1px solid var(--line);border-radius:99px;color:var(--muted);background:rgba(19,31,54,.7)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:-40px;position:relative;z-index:2}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.stat b{font-size:2rem;display:block;color:var(--accent)}
+.stat span{color:var(--muted);font-size:.9rem}
+
+/* cards */
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.card h3{margin:8px 0 6px;font-size:1.05rem}
+.card p{color:var(--muted);font-size:.93rem}
+.ico{font-size:1.8rem}
+.alt{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+/* pipeline */
+.pipe{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.step{flex:1 1 140px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;position:relative}
+.step i{font-style:normal;font-size:1.6rem;display:block}
+.step b{display:block;font-size:.9rem;margin-top:4px}
+.step small{color:var(--muted);font-size:.78rem}
+.models{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:18px}
+.model{border-left:3px solid var(--accent);background:var(--card);padding:14px 16px;border-radius:0 12px 12px 0}
+.model:nth-child(2){border-color:var(--purple)} .model:nth-child(3){border-color:var(--green)}
+.model b{display:block}.model span{color:var(--muted);font-size:.88rem}
+
+/* attacks */
+.atk .pill{display:inline-block;font-size:.72rem;padding:2px 10px;border-radius:99px;margin-top:10px;margin-right:4px;background:#1c2b49;color:var(--muted)}
+
+/* demo */
+.demo{display:grid;gap:24px;grid-template-columns:1fr 1fr}
+@media(max-width:860px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.presets button{padding:6px 14px;border-radius:99px;border:1px solid var(--line);background:var(--bg2);color:var(--text);cursor:pointer;font-size:.85rem}
+.presets button:hover{border-color:var(--accent)}
+.ctl{margin-bottom:14px}
+.ctl label{display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted)}
+.ctl label b{color:var(--text)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.gauge{height:14px;background:var(--bg2);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.gauge div{height:100%;width:0;transition:width .3s,background .3s;background:var(--green)}
+.verdict{font-size:2rem;font-weight:800;margin:6px 0}
+.sev{display:inline-block;padding:3px 12px;border-radius:6px;font-weight:700;font-size:.8rem}
+.note{font-size:.8rem;color:var(--muted);margin-top:14px}
+.bars .row{display:grid;grid-template-columns:80px 1fr 44px;gap:8px;align-items:center;font-size:.85rem;margin:8px 0;color:var(--muted)}
+.bars .bar{height:8px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.bars .bar div{height:100%;width:0;transition:width .3s}
+
+/* results */
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em}
+.meter{height:6px;background:var(--bg2);border-radius:99px;margin-top:6px;overflow:hidden}
+.meter div{height:100%;background:linear-gradient(90deg,var(--accent),var(--green))}
+.scroll{overflow-x:auto}
+
+/* feed */
+.feed{background:#070c16;border:1px solid var(--line);border-radius:var(--radius);padding:16px;height:300px;overflow:hidden;font-size:.8rem;position:relative}
+.feed .ln{white-space:pre;animation:in .4s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.CRITICAL{color:#ff6b81}.HIGH{color:#ffa94d}.MEDIUM{color:#ffd43b}.LOW{color:#74c0fc}
+
+/* gallery */
+.gallery{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.shot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.shot img{width:100%;display:block;background:#fff;min-height:120px}
+.shot p{padding:12px 16px;font-size:.88rem;color:var(--muted)}
+.gallery .shot:nth-child(1),.gallery .shot:nth-child(2),.gallery .shot:nth-child(4){grid-column:1/-1}
+
+/* code */
+pre{background:#070c16;border:1px solid var(--line);border-radius:12px;padding:18px;overflow-x:auto;font-size:.85rem;color:#c9d6ea}
+.tech{display:flex;flex-wrap:wrap;gap:10px}
+.tech span{padding:8px 16px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-size:.9rem}
+.lim li{margin:8px 0 8px 20px;color:var(--muted)}
+footer{padding:40px 0;text-align:center;color:var(--muted);border-top:1px solid var(--line);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top">🛡️ ThreatDetect<span style="color:var(--accent)">AI</span></a>
+  <ul>
+    <li><a href="#how">How it works</a></li><li><a href="#attacks">Attacks</a></li>
+    <li><a href="#demo">Live demo</a></li><li><a href="#results">Results</a></li>
+    <li><a href="#screens">Screenshots</a></li><li><a href="#run">Run it</a></li>
+  </ul>
+  <a class="btn primary" href="https://github.com/YOUR-USERNAME/AI-Cybersecurity-Threat-Detection" target="_blank" rel="noopener">⭐ GitHub</a>
+</div></nav>
+
+<header class="hero" id="top">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <span class="tag">Machine Learning · Network Security</span>
+    <h1>Detect cyber attacks in network traffic <span>before they cause damage</span></h1>
+    <p>An end-to-end AI system that learns what normal traffic looks like, spots DoS, brute-force and port-scan attacks (plus unknown anomalies), and raises severity-ranked SOC-style alerts.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://colab.research.google.com/github/YOUR-USERNAME/AI-Cybersecurity-Threat-Detection/blob/main/AI_Cybersecurity_Threat_Detection.ipynb" target="_blank" rel="noopener">🚀 Open in Colab</a>
+      <a class="btn" href="#demo">🎛️ Try the demo</a>
+      <a class="btn" href="https://github.com/YOUR-USERNAME/AI-Cybersecurity-Threat-Detection" target="_blank" rel="noopener">💻 View source</a>
+    </div>
+    <div class="badges">
+      <span class="badge">🐍 Python</span><span class="badge">scikit-learn</span><span class="badge">Pandas</span>
+      <span class="badge">Random Forest</span><span class="badge">Isolation Forest</span><span class="badge">Google Colab</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><b>99.8%</b><span>Accuracy on 6,000 unseen flows</span></div>
+    <div class="stat"><b>99.3%</b><span>Attack recall (Random Forest)</span></div>
+    <div class="stat"><b>~90%</b><span>Recall with <em>no</em> attack labels (Isolation Forest)</span></div>
+    <div class="stat"><b>1,297</b><span>Alerts generated from test traffic</span></div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <span class="tag">The problem</span>
+    <h2>Static rules can't keep up</h2>
+    <p class="sub">Signature-based security tools only catch attacks they already know, and they flood analysts with false alarms.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🕳️</div><h3>Missed new attacks</h3><p>Evolving and low-and-slow attacks slip past fixed rules.</p></div>
+      <div class="card"><div class="ico">🔔</div><h3>Alert fatigue</h3><p>Too many low-quality alerts hide the real threats.</p></div>
+      <div class="card"><div class="ico">📈</div><h3>Scale</h3><p>Millions of network events per day are impossible to review by hand.</p></div>
+      <div class="card"><div class="ico">🧠</div><h3>ML approach</h3><p>Learn normal behaviour, score every flow, and rank alerts by severity.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="alt">
+  <div class="wrap">
+    <span class="tag">Pipeline</span>
+    <h2>How it works</h2>
+    <p class="sub">From raw traffic logs to prioritised alerts in seven steps.</p>
+    <div class="pipe">
+      <div class="step"><i>🌐</i><b>Traffic</b><small>20,000 simulated flows</small></div>
+      <div class="step"><i>🧹</i><b>Clean</b><small>dupes, inf, nulls</small></div>
+      <div class="step"><i>🔧</i><b>Features</b><small>packets/sec, port spread…</small></div>
+      <div class="step"><i>⚙️</i><b>Pipeline</b><small>scale + encode</small></div>
+      <div class="step"><i>🤖</i><b>Models</b><small>3 detectors</small></div>
+      <div class="step"><i>🚨</i><b>Alerts</b><small>severity + evidence</small></div>
+      <div class="step"><i>📊</i><b>Dashboard</b><small>graphs &amp; metrics</small></div>
+    </div>
+    <div class="models">
+      <div class="model"><b>🌲 Random Forest</b><span>Supervised: is this flow an attack? Also classifies which attack type.</span></div>
+      <div class="model"><b>📉 Logistic Regression</b><span>Fast, explainable baseline to compare against.</span></div>
+      <div class="model"><b>🕵️ Isolation Forest</b><span>Unsupervised, trained on normal traffic only: catches unknown (zero-day) behaviour.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="attacks">
+  <div class="wrap">
+    <span class="tag">Virtual simulation</span>
+    <h2>Simulated cyber attacks</h2>
+    <p class="sub">No real corporate logs needed. Each row is one network flow with attack signatures modelled on real behaviour. 35% of attacks are stealthy and blend with normal traffic.</p>
+    <div class="grid atk">
+      <div class="card"><div class="ico">✅</div><h3>Normal · 80%</h3><p>Moderate request rates, 0–2 failed logins, few ports.</p></div>
+      <div class="card"><div class="ico">💥</div><h3>DoS · 8%</h3><p>Flood of requests with a high SYN ratio and hundreds of connections per minute.</p><span class="pill">~500 req/s</span><span class="pill">SYN &gt; 0.8</span></div>
+      <div class="card"><div class="ico">🔑</div><h3>Brute Force · 6%</h3><p>Repeated password guessing against SSH/FTP services.</p><span class="pill">3+ failed logins</span><span class="pill">ssh / ftp</span></div>
+      <div class="card"><div class="ico">🔍</div><h3>Port Scan · 6%</h3><p>Tiny flows probing many destination ports to map the network.</p><span class="pill">20–100+ ports</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" class="alt">
+  <div class="wrap">
+    <span class="tag">Interactive</span>
+    <h2>Try the detector</h2>
+    <p class="sub">Adjust a network flow's behaviour and watch the threat score, attack type and alert severity change.</p>
+    <div class="demo">
+      <div class="panel">
+        <div class="presets">
+          <button data-p="normal">✅ Normal</button><button data-p="dos">💥 DoS</button>
+          <button data-p="brute">🔑 Brute force</button><button data-p="scan">🔍 Port scan</button>
+          <button data-p="stealth">🥷 Stealthy</button>
+        </div>
+        <div class="ctl"><label>Request rate (per sec) <b id="v_rate">5</b></label><input type="range" id="rate" min="0" max="700" value="5"></div>
+        <div class="ctl"><label>Failed logins <b id="v_fail">0</b></label><input type="range" id="fail" min="0" max="25" value="0"></div>
+        <div class="ctl"><label>Unique destination ports <b id="v_ports">2</b></label><input type="range" id="ports" min="1" max="120" value="2"></div>
+        <div class="ctl"><label>SYN packet ratio <b id="v_syn">0.20</b></label><input type="range" id="syn" min="0" max="100" value="20"></div>
+        <div class="ctl"><label>Connections in last 60s <b id="v_conn">8</b></label><input type="range" id="conn" min="1" max="400" value="8"></div>
+      </div>
+      <div class="panel">
+        <span class="tag">Verdict</span>
+        <div class="verdict" id="verdict">Normal</div>
+        <span class="sev" id="sev" style="background:#14532d;color:#86efac">NO ALERT</span>
+        <div class="gauge"><div id="gauge"></div></div>
+        <div class="mono" style="font-size:.85rem;color:var(--muted)">threat_score = <b id="score" style="color:var(--text)">0.00</b></div>
+        <div class="bars" style="margin-top:16px">
+          <div class="row">DoS<div class="bar"><div id="b_dos" style="background:var(--red)"></div></div><span id="p_dos">0%</span></div>
+          <div class="row">BruteForce<div class="bar"><div id="b_brute" style="background:var(--amber)"></div></div><span id="p_brute">0%</span></div>
+          <div class="row">PortScan<div class="bar"><div id="b_scan" style="background:var(--accent)"></div></div><span id="p_scan">0%</span></div>
+        </div>
+        <p class="note">⚠️ Illustrative demo: a simple rule-based scorer that mirrors the signatures the trained models learn. It is <b>not</b> the trained model itself. Run the notebook for real predictions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <span class="tag">Evaluation</span>
+    <h2>Results on unseen traffic</h2>
+    <p class="sub">6,000 flows held out from training (random seed 42). Recall matters most in security: a missed attack costs more than a false alarm.</p>
+    <div class="panel scroll">
+      <table>
+        <thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic Regression</td><td>99.82%<div class="meter"><div style="width:99.82%"></div></div></td><td>99.75%</td><td>99.33%</td><td>99.54%</td></tr>
+          <tr><td>🌲 Random Forest</td><td>99.82%<div class="meter"><div style="width:99.82%"></div></div></td><td>99.83%</td><td>99.25%</td><td>99.54%</td></tr>
+          <tr><td>🕵️ Isolation Forest <small style="color:var(--muted)">(unsupervised)</small></td><td>96.35%<div class="meter"><div style="width:96.35%"></div></div></td><td>91.53%</td><td>90.08%</td><td>90.80%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:14px">Honest note: the data is simulated and cleaner than real traffic. Expect lower scores and more false positives on real datasets such as CICIDS2017.</p>
+
+    <h2 style="margin-top:48px;font-size:1.4rem">🚨 Live alert feed</h2>
+    <p class="sub" style="margin-bottom:16px">Sample alerts produced by the detection engine (replayed here).</p>
+    <div class="feed mono" id="feed"></div>
+  </div>
+</section>
+
+<section id="screens" class="alt">
+  <div class="wrap">
+    <span class="tag">Output</span>
+    <h2>Project screenshots</h2>
+    <p class="sub">Generated by the notebook. Save them in the <code>images/</code> folder of the repo.</p>
+    <div class="gallery">
+      <div class="shot"><img src="images/dashboard.png" alt="Security dashboard" loading="lazy"><p>📊 Security dashboard: class mix, attack timeline, threat scores, severity, top attacker IPs</p></div>
+      <div class="shot"><img src="images/evaluation.png" alt="Model evaluation" loading="lazy"><p>🧪 Confusion matrices and ROC curves</p></div>
+      <div class="shot"><img src="images/feature_importance.png" alt="Feature importance" loading="lazy"><p>🔑 Which features reveal attacks</p></div>
+      <div class="shot"><img src="images/alert_feed.png" alt="Alert feed" loading="lazy"><p>🚨 Alert feed with severity and evidence</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="wrap">
+    <span class="tag">Get started</span>
+    <h2>Run it yourself</h2>
+    <p class="sub">The easiest way is Google Colab: no installation and no dataset download.</p>
+    <div class="cta" style="margin-bottom:24px">
+      <a class="btn primary" href="https://colab.research.google.com/github/YOUR-USERNAME/AI-Cybersecurity-Threat-Detection/blob/main/AI_Cybersecurity_Threat_Detection.ipynb" target="_blank" rel="noopener">🚀 Open in Colab</a>
+    </div>
+<pre>git clone https://github.com/YOUR-USERNAME/AI-Cybersecurity-Threat-Detection.git
+cd AI-Cybersecurity-Threat-Detection
+python -m venv venv
+venv\Scripts\activate        # Windows  (Mac/Linux: source venv/bin/activate)
+pip install -r requirements.txt notebook
+jupyter notebook AI_Cybersecurity_Threat_Detection.ipynb</pre>
+    <h2 style="margin-top:40px;font-size:1.3rem">Tech stack</h2><br>
+    <div class="tech"><span>🐍 Python</span><span>Pandas</span><span>NumPy</span><span>scikit-learn</span><span>Matplotlib</span><span>Seaborn</span><span>Google Colab</span><span>Git &amp; GitHub</span></div>
+    <h2 style="margin-top:40px;font-size:1.3rem">Limitations</h2>
+    <ul class="lim"><li>Simulated data is cleaner than real network traffic.</li><li>Works on flow-level features, not raw packet capture.</li><li>Alert thresholds are static, not tuned to a specific environment.</li></ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <b>YOUR NAME</b> · <a href="https://github.com/YOUR-USERNAME" target="_blank" rel="noopener">GitHub</a> ·
+    <a href="https://www.linkedin.com/in/YOUR-PROFILE" target="_blank" rel="noopener">LinkedIn</a> · MIT License
+  </div>
+</footer>
+
+<script>
+/* ---------- animated network background ---------- */
+(function(){
+  const c=document.getElementById('net'),x=c.getContext('2d');
+  let W,H,nodes=[];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight;
+    nodes=Array.from({length:Math.min(70,Math.floor(W/16))},()=>({x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,bad:Math.random()<.08}));}
+  function draw(t){
+    x.clearRect(0,0,W,H);
+    for(const n of nodes){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;}
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<130){x.strokeStyle=(a.bad||b.bad)?'rgba(244,63,94,'+(1-d/130)*.5+')':'rgba(56,189,248,'+(1-d/130)*.25+')';
+        x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();}}
+    for(const n of nodes){x.fillStyle=n.bad?'#f43f5e':'#38bdf8';
+      const r=n.bad?3+Math.sin(t/250)*1.5:2;x.beginPath();x.arc(n.x,n.y,r,0,7);x.fill();}
+    if(!reduce)requestAnimationFrame(draw);
+  }
+  addEventListener('resize',size);size();requestAnimationFrame(draw);
+})();
+
+/* ---------- interactive demo (rule-based, illustrative) ---------- */
+(function(){
+  const $=id=>document.getElementById(id);
+  const sat=(v,k)=>Math.max(0,Math.min(1,v/k));
+  const ids=['rate','fail','ports','syn','conn'];
+  const presets={
+    normal :[5,0,2,20,8],
+    dos    :[480,0,1,90,300],
+    brute  :[20,14,1,40,50],
+    scan   :[30,0,80,85,60],
+    stealth:[110,6,22,60,40]
+  };
+  function sev(p){return p>=.95?['CRITICAL','#7f1d1d','#fecaca']:p>=.8?['HIGH','#7c2d12','#fed7aa']:
+                  p>=.5?['MEDIUM','#713f12','#fde68a']:['NO ALERT','#14532d','#86efac'];}
+  function update(){
+    const rate=+$('rate').value,fail=+$('fail').value,ports=+$('ports').value,
+          syn=$('syn').value/100,conn=+$('conn').value;
+    $('v_rate').textContent=rate;$('v_fail').textContent=fail;$('v_ports').textContent=ports;
+    $('v_syn').textContent=syn.toFixed(2);$('v_conn').textContent=conn;
+    const dos  =Math.min(1,.5*sat(rate,200)+.3*sat(syn-.4,.5)+.2*sat(conn,200));
+    const brute=Math.min(1,.7*sat(fail,8)+.3*sat(conn,45));
+    const scan =Math.min(1,.8*sat(ports,50)+.2*sat(syn-.4,.5));
+    const s={dos,brute,scan};
+    for(const k in s){$('b_'+k).style.width=(s[k]*100)+'%';$('p_'+k).textContent=Math.round(s[k]*100)+'%';}
+    const score=Math.max(dos,brute,scan);
+    const top=Object.keys(s).reduce((a,b)=>s[a]>=s[b]?a:b);
+    const names={dos:'DoS attack',brute:'Brute-force attack',scan:'Port scan'};
+    const [lbl,bg,fg]=sev(score);
+    $('verdict').textContent=score>=.5?names[top]:'Normal traffic';
+    const e=$('sev');e.textContent=lbl;e.style.background=bg;e.style.color=fg;
+    const g=$('gauge');g.style.width=(score*100)+'%';
+    g.style.background=score>=.8?'var(--red)':score>=.5?'var(--amber)':'var(--green)';
+    $('score').textContent=score.toFixed(2);
+  }
+  ids.forEach(i=>$(i).addEventListener('input',update));
+  document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>{
+    presets[b.dataset.p].forEach((v,i)=>$(ids[i]).value=v);update();}));
+  update();
+})();
+
+/* ---------- replayed alert feed (sample of real project output) ---------- */
+(function(){
+  const rows=[
+   ['CRITICAL','00:10:19','PortScan','192.0.2.2','10.0.0.9','1.00','78 ports probed; SYN ratio 0.72'],
+   ['HIGH','00:06:12','BruteForce','198.51.100.4','10.0.0.6','0.88','5 failed logins'],
+   ['CRITICAL','00:30:00','DoS','203.0.113.8','10.0.0.6','1.00','request rate 369/s; SYN ratio 0.82'],
+   ['LOW','00:21:40','Unknown Anomaly','192.168.1.15','10.0.0.4','0.10','statistical deviation from normal profile'],
+   ['CRITICAL','00:36:42','DoS','203.0.113.8','10.0.0.4','1.00','request rate 462/s; SYN ratio 0.80'],
+   ['CRITICAL','00:39:57','BruteForce','198.51.100.2','10.0.0.7','1.00','18 failed logins'],
+   ['CRITICAL','00:43:30','DoS','203.0.113.22','10.0.0.10','1.00','request rate 704/s; SYN ratio 0.90'],
+   ['LOW','00:43:38','Unknown Anomaly','192.168.1.16','10.0.0.3','0.01','statistical deviation from normal profile'],
+   ['CRITICAL','00:46:46','PortScan','192.0.2.3','10.0.0.7','0.99','44 ports probed']
+  ];
+  const feed=document.getElementById('feed');let i=0;
+  function add(){
+    const r=rows[i++%rows.length];
+    const d=document.createElement('div');d.className='ln '+r[0];
+    d.textContent=`[${r[0].padEnd(8)}] 2026-01-01 ${r[1]} ${r[2].padEnd(16)} ${r[3].padStart(13)} -> ${r[4].padEnd(9)} score=${r[5]} | ${r[6]}`;
+    feed.appendChild(d);
+    while(feed.children.length>12)feed.removeChild(feed.firstChild);
+  }
+  add();setInterval(add,1300);
+})();
+</script>
+</body>
+</html>
