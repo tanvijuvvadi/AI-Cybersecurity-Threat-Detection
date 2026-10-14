@@ -1,0 +1,4 @@
+model,accuracy,precision,recall,f1,roc_auc
+logistic_regression,0.9985,0.9967,0.9958,0.9962,0.9999
+random_forest,0.9985,0.9992,0.9933,0.9962,1.0
+isolation_forest (unsupervised),0.9683,0.9346,0.905,0.9196,0.9929
